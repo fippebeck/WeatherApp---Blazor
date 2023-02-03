@@ -1,0 +1,89 @@
+﻿@page "/appweather"
+@page "/"
+<PageTitle>CheckWeather</PageTitle>
+<h3>AppWeather</h3>
+
+<div>
+    <select @bind="SelectedCountry">
+        <option value="">Select a city</option>
+        <option value="London">London</option>
+        <option value="Stockholm">Stockholm</option>
+        <option value="Paris">Paris</option>
+        <option value="Berlin">Berlin</option>
+        <option value="Rome">Rome</option>
+        <option value="Madrid">Madrid</option>
+        <option value="Amsterdam">Amsterdam</option>
+        <option value="Bern">Bern</option>
+        <option value="Athens">Athens</option>
+        <option value="Oslo">Oslo</option>
+    </select>
+    <button @onclick="GetWeather">Get Weather</button>
+</div>
+
+@if (weatherData != null)
+{
+    <div class="weather">
+    <h4>Country: @weatherData.location.country</h4>
+    <h4>City: @weatherData.location.name</h4>
+    <h4>Temperature: @weatherData.current.temp_c °C</h4>
+    <h4>Wind speed: @weatherData.current.wind_kph km/h</h4>
+    <h4>Wind direction: @weatherData.current.wind_dir</h4>
+    </div>
+}
+
+
+@code {
+    
+
+    @using Newtonsoft.Json;
+
+    private string SelectedCountry { get; set; }
+    private Weather weatherData;
+    
+    private async Task GetWeather()
+    {
+        if (string.IsNullOrEmpty(SelectedCountry))
+        {
+            return;
+        }
+        // Make a request to a weather API to retrieve the weather information
+        // for the selected country
+        var client = new HttpClient();
+        var response = await client.GetAsync($"http://api.weatherapi.com/v1/current.json?key=ef994fd5e3da450e9e112132232001&q={SelectedCountry}&aqi=no");
+        var jsonstring = await response.Content.ReadAsStringAsync();
+        weatherData = JsonConvert.DeserializeObject<Weather>(jsonstring);
+
+        Console.WriteLine("Country: " + weatherData.location.country);
+        Console.WriteLine("City: " + weatherData.location.name);
+        Console.WriteLine("Localtime: " + weatherData.location.localtime);
+        Console.WriteLine("Temperature: " + weatherData.current.temp_c + "°C");
+        Console.WriteLine("Wind speed: " + weatherData.current.wind_kph + "km/h");
+        Console.WriteLine("Wind direction: " + weatherData.current.wind_dir);
+      
+    }
+
+    class Weather
+    {
+        public Location location { get; set; }
+        public Current current { get; set; }
+    }
+
+    class Location
+    {
+        public string name { get; set; }
+        public string region { get; set; }
+        public string country { get; set; }
+        public string localtime { get; set; }
+    }
+
+    class Current
+    {
+        public double temp_c { get; set; }
+        public double wind_kph { get; set; }
+        public string wind_dir { get; set; }
+     
+    }
+    
+
+
+}
